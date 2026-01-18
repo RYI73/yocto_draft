@@ -17,8 +17,8 @@ case $1 in
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_QEMUARM"
 
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/local.conf $CURRENT_DIR/$BUILD_DIR_QEMUARM/
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/bblayers.conf $CURRENT_DIR/$BUILD_DIR_QEMUARM/
+        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/local.conf $CURRENT_DIR/$BUILD_DIR_QEMUARM/conf/
+        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/bblayers.conf $CURRENT_DIR/$BUILD_DIR_QEMUARM/conf/
 
         docker run \
         -v $(pwd):/workdir \
@@ -33,8 +33,8 @@ case $1 in
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_ARM"
 
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_ARM/local.conf $CURRENT_DIR/$BUILD_DIR_ARM/
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_ARM/bblayers.conf $CURRENT_DIR/$BUILD_DIR_ARM/
+        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_ARM/local.conf $CURRENT_DIR/$BUILD_DIR_ARM/conf/
+        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_ARM/bblayers.conf $CURRENT_DIR/$BUILD_DIR_ARM/conf/
 
         docker run \
         -v $(pwd):/workdir \
