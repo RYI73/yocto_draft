@@ -6,9 +6,7 @@ BUILD_DIR_X86=build-x86
 BUILD_DIR_ARM=build-$TARGET_ARM
 BUILD_DIR_QEMUARM=build-$TARGET_QEMUARM
 CONFIG_DIR=config
-CURRENT_DIR=$(pwd)
-
-echo "Current DIR: $CURRENT_DIR"
+ROOT_DIR=$(pwd)
 
 case $1 in
   --qemu)
@@ -17,8 +15,8 @@ case $1 in
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_QEMUARM"
 
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/local.conf $CURRENT_DIR/$BUILD_DIR_QEMUARM/conf/
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/bblayers.conf $CURRENT_DIR/$BUILD_DIR_QEMUARM/conf/
+        cp $ROOT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/local.conf $ROOT_DIR/$BUILD_DIR_QEMUARM/conf/
+        cp $ROOT_DIR/$CONFIG_DIR/$TARGET_QEMUARM/bblayers.conf $ROOT_DIR/$BUILD_DIR_QEMUARM/conf/
 
         docker run \
         -v $(pwd):/workdir \
@@ -33,8 +31,8 @@ case $1 in
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_ARM"
 
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_ARM/local.conf $CURRENT_DIR/$BUILD_DIR_ARM/conf/
-        cp $CURRENT_DIR/$CONFIG_DIR/$TARGET_ARM/bblayers.conf $CURRENT_DIR/$BUILD_DIR_ARM/conf/
+        cp $ROOT_DIR/$CONFIG_DIR/$TARGET_ARM/local.conf $ROOT_DIR/$BUILD_DIR_ARM/conf/
+        cp $ROOT_DIR/$CONFIG_DIR/$TARGET_ARM/bblayers.conf $ROOT_DIR/$BUILD_DIR_ARM/conf/
 
         docker run \
         -v $(pwd):/workdir \
@@ -50,17 +48,74 @@ case $1 in
         sh -c ''
     ;;
 
-  --clean)
-        docker container run \
+  --create)        
+        if [ -z "$2" ]; then
+            echo "ERROR!!! Specify the name of package: $0 --create new-package."
+            exit 1 # terminate if an error occurs
+        fi
+
+        PACKAGE_NAME=$2
+        docker run \
         -v $(pwd):/workdir \
         crops/poky \
-        sh -c ''
+        sh -c "source /workdir/poky/oe-init-build-env && \
+        bitbake-layers create-layer /workdir/meta-$PACKAGE_NAME
+        bitbake-layers add-layer /workdir/meta-$PACKAGE_NAME
+        "
+    ;;
+
+  --build-arm)        
+        if [ -z "$2" ]; then
+            echo "ERROR!!! Specify the name of package: $0 --build new-package."
+            exit 1 # terminate if an error occurs
+        fi
+
+        PACKAGE_NAME=$2
+        docker run \
+        -v $(pwd):/workdir \
+        crops/poky \
+        sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_ARM && \
+        bitbake $PACKAGE_NAME
+        "
+    ;;
+
+  --build-qemu)        
+        if [ -z "$2" ]; then
+            echo "ERROR!!! Specify the name of package: $0 --build new-package."
+            exit 1 # terminate if an error occurs
+        fi
+
+        PACKAGE_NAME=$2
+        docker run \
+        -v $(pwd):/workdir \
+        crops/poky \
+        sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_QEMUARM && \
+        bitbake $PACKAGE_NAME
+        "
+    ;;
+
+  --clean)
+        if [ -z "$2" ]; then
+            echo "Clean all builds."
+        else
+            PACKAGE_NAME=$2
+            docker run \
+            -v $(pwd):/workdir \
+            crops/poky \
+            sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_QEMUARM && \
+            bitbake $PACKAGE_NAME -c clean
+            "
+        fi
+
     ;;
 
   *)
         echo "--qemu - build qemuarm image."
         echo "--arm - build arm image."
         echo "--all - build all images."
+        echo "--create - creates new package with specified name."
+        echo "--build-arm - builds new package for arm with specified name."
+        echo "--build-qemu - builds new package for qemuarm with specified name."
         echo "--clean - cleans all the build files."
    ;;
 esac
