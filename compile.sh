@@ -38,7 +38,8 @@ case $1 in
         -v $(pwd):/workdir \
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_ARM && \
-               bitbake core-image-minimal"
+               bitbake core-image-minimal
+        "
     ;;
 
   --all)
@@ -59,8 +60,8 @@ case $1 in
         -v $(pwd):/workdir \
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env && \
-        bitbake-layers create-layer /workdir/meta-$PACKAGE_NAME
-        bitbake-layers add-layer /workdir/meta-$PACKAGE_NAME
+               bitbake-layers create-layer /workdir/meta-$PACKAGE_NAME
+               bitbake-layers add-layer /workdir/meta-$PACKAGE_NAME
         "
     ;;
 
@@ -75,7 +76,7 @@ case $1 in
         -v $(pwd):/workdir \
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_ARM && \
-        bitbake $PACKAGE_NAME
+               bitbake $PACKAGE_NAME
         "
     ;;
 
@@ -90,11 +91,11 @@ case $1 in
         -v $(pwd):/workdir \
         crops/poky \
         sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_QEMUARM && \
-        bitbake $PACKAGE_NAME
+               bitbake $PACKAGE_NAME
         "
     ;;
 
-  --clean)
+  --clean-qemu)
         if [ -z "$2" ]; then
             echo "Clean all builds."
         else
@@ -103,9 +104,44 @@ case $1 in
             -v $(pwd):/workdir \
             crops/poky \
             sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_QEMUARM && \
-            bitbake $PACKAGE_NAME -c clean
+                   bitbake $PACKAGE_NAME -c clean
             "
         fi
+
+    ;;
+
+  --clean-arm)
+        if [ -z "$2" ]; then
+            echo "Clean all builds."
+        else
+            PACKAGE_NAME=$2
+            docker run \
+            -v $(pwd):/workdir \
+            crops/poky \
+            sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_ARM && \
+                   bitbake $PACKAGE_NAME -c clean
+            "
+        fi
+
+    ;;
+
+  --sdk-qemu)
+        docker run \
+        -v $(pwd):/workdir \
+        crops/poky \
+        sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_QEMUARM && \
+               bitbake core-image-minimal -c populate_sdk_ext
+        "
+
+    ;;
+
+  --sdk-arm)
+        docker run \
+        -v $(pwd):/workdir \
+        crops/poky \
+        sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_ARM && \
+               bitbake core-image-minimal -c populate_sdk_ext
+        "
 
     ;;
 
@@ -116,7 +152,10 @@ case $1 in
         echo "--create - creates new package with specified name."
         echo "--build-arm - builds new package for arm with specified name."
         echo "--build-qemu - builds new package for qemuarm with specified name."
-        echo "--clean - cleans all the build files."
+        echo "--sdk-arm - builds eSDK for arm."
+        echo "--sdk-qemu - builds eSDK for qemuarm."
+        echo "--clean-qemu - cleans qemuarm build files."
+        echo "--clean-arm - cleans arm build files."
    ;;
 esac
 
