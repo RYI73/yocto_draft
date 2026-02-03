@@ -40,7 +40,7 @@ case $1 in
         -v $(pwd):/workdir \
         crops/poky \
         --workdir=/workdir \
-        sh -c "source /workdir/poky/oe-init-build-env && /bin/bash" 
+        sh -c "source /workdir/poky/oe-init-build-env /workdir/$BUILD_DIR_X86 && /bin/bash" 
     ;;
 
   *)
